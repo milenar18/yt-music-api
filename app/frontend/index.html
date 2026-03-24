@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Music Player</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #121212;
+      color: white;
+      text-align: center;
+    }
+
+    input {
+      width: 300px;
+      padding: 10px;
+      margin: 20px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #1db954;
+      color: white;
+    }
+
+    .music {
+      margin: 10px;
+      padding: 10px;
+      background: #1e1e1e;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .music:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎧 Music Player</h1>
+
+  <input type="text" id="searchInput" placeholder="Buscar música..." />
+  <button onclick="search()">Buscar</button>
+
+  <div id="results"></div>
+
+  <audio id="player" controls style="margin-top:20px; width: 80%;"></audio>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000";
+
+async function search() {
+  try {
+    const query = document.getElementById("searchInput").value;
+
+    const res = await fetch(`${API_URL}/search?query=${query}`);
+    const data = await res.json();
+
+    console.log("DATA:", data);
+
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "";
+
+    const musics = data.results || data;
+
+    if (!Array.isArray(musics)) {
+      resultsDiv.innerHTML = "Erro: formato inválido";
+      return;
+    }
+
+    if (musics.length === 0) {
+      resultsDiv.innerHTML = "Nenhuma música encontrada";
+      return;
+    }
+
+    musics.forEach(music => {
+      const div = document.createElement("div");
+      div.className = "music";
+      div.innerText = music.title;
+
+      div.onclick = () => play(music.url);
+
+      resultsDiv.appendChild(div);
+    });
+
+  } catch (error) {
+    console.error("ERRO:", error);
+    document.getElementById("results").innerHTML = "Erro ao buscar músicas";
+  }
+}
+function play(url) {
+  const player = document.getElementById("player");
+
+  const streamUrl = `${API_URL}/play?url=${encodeURIComponent(url)}`;
+
+  console.log("TOCANDO:", streamUrl);
+
+  player.src = streamUrl;
+  player.load();
+  player.play();
+}
+  </script>
+
+</body>
+</html>
